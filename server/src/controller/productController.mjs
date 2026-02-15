@@ -2,7 +2,7 @@
 import * as productService from "../service/productService.mjs";
 import { catchAsync } from "../utils/catchAsync.mjs";
 
-export const getData = catchAsync(async (req, res, next) => {
+export const getProduct = catchAsync(async (req, res, next) => {
   // 2. Call the service
   const products = await productService.getAllProducts();
 

@@ -7,3 +7,4 @@ export const productSchema = z.object({
     stock_quantity: z.number().positive()
 
 })
+export default productSchema;
