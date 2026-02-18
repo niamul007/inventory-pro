@@ -1,10 +1,10 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 export const productSchema = z.object({
-    name: z.string().min(2,"Item is too small").max(100,"product name should be under 100"),
-    caegory: z.string(2,"category name is too small"),
-    price: z.number().positive(),
-    stock_quantity: z.number().positive()
+    name: z.string().min(2, "Name too short").max(100),
+    category: z.string().min(2, "Category too short"), // Fixed typo
+    price: z.coerce.number().positive(), // Coerce strings to numbers
+    stock: z.coerce.number().int().nonnegative() // Fixed name to match App.jsx
+});
 
-})
-export default productSchema;
+export default productSchema
