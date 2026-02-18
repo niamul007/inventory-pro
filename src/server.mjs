@@ -9,13 +9,13 @@ import cors from 'cors';
 const __dirname = import.meta.dirname;
 const app = express();
 const PORT = 7001;
+app.use(cors()); // Move this up!
 const filePath = path.join(__dirname, "../client/project");
 console.log(filePath)
 
 app.use(express.json());
 app.use(express.static(filePath));
 app.use("/api", router);
-app.use(cors())
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, "../client/project/index.html"));
