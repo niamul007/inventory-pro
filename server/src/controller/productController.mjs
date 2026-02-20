@@ -43,3 +43,23 @@ export const delProduct = catchAsync(async (req, res, next) => {
     next(err); // Send errors to your global error handler
   }
 });
+
+
+export const updateProduct = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const { name, category, price, stock } = req.body;
+
+    // Call the service we just wrote
+    const updatedProduct = await productService.updateProduct(id, { name, category, price, stock });
+
+    if (!updatedProduct) {
+        return next(new AppError('No product found with that ID', 404));
+    }
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            product: updatedProduct
+        }
+    });
+});
