@@ -48,3 +48,21 @@ export const delProduct = async (id) => {
     // If there's no data, just return true to signal success
     return true; 
 };
+
+
+// Change this line in your productService.js
+export const updateProduct = async (id, productData) => {
+    const response = await fetch(`${API_URL}/update-product/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+        throw new Error(json.message || `Error: ${response.status}`);
+    }
+    // Accessing data.product based on your controller pattern
+    return json.data?.product || json;
+};
