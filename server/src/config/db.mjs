@@ -6,7 +6,7 @@ const poolConfig = {
   user: 'neondb_owner',
   host: 'ep-bold-cake-a1jg4nz0-pooler.ap-southeast-1.aws.neon.tech',
   database: 'neondb',
-  password: '', // <--- TYPE YOUR PASSWORD HERE
+  password: 'npg_4AjTM0LifNhq', // <--- TYPE YOUR PASSWORD HERE
   port: 5432,
   ssl: {
     rejectUnauthorized: false, // Required for Neon

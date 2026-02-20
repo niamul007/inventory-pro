@@ -15,3 +15,10 @@ export const createProduct = async (productData) => {
     const { rows } = await pool.query(sql, [name, category, price, stock]);
     return rows[0];
 };
+// npg_4AjTM0LifNhq
+
+export const delProduct = async (id) =>{
+    const sql = `DELETE  FROM products WHERE id = $1 RETURNING *`
+    const result =  await pool.query(sql,[id]);
+    return result.rows[0];
+}

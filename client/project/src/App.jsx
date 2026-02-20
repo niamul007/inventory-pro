@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { getProducts, addProduct } from "./services/productService.js";
+import {
+  getProducts,
+  addProduct,
+  delProduct,
+} from "./services/productService.js";
 
 function App() {
   const [products, setProducts] = useState([]); // plural 'products' for the list
@@ -41,12 +45,12 @@ function App() {
 
       // Reset form
       setFormData({ name: "", category: "Electronics", price: "", stock: "" });
-      alert("Product saved to Neon!");
+      console.log("Product saved to Neon!");
       // Inside handleSubmit catch block
     } catch (err) {
       console.error("Validation Failed:", err);
       // This will tell us exactly which field Zod hates:
-      alert(`Error: ${err.message}`);
+      console.log(`Error: ${err.message}`);
     }
   };
   // 1. Function to LOAD data
@@ -61,6 +65,22 @@ function App() {
     }
   };
 
+const deleteProduct = async (id) => {
+    try {
+      // 1. Tell the server to delete it from the Database
+      await delProduct(id);
+
+      // 2. Update the UI: Filter OUT the item with the matching ID
+      // We keep every item that DOES NOT match the ID we just deleted
+      const updatedList = products.filter((item) => item.id !== id);
+      
+      setProducts(updatedList);
+      console.log("Product removed")
+    } catch (err) {
+      console.error("Delete failed:", err);
+      console.log("product didn't delete")
+    }
+  };
   // 2. Run ONLY once when the component mounts
   useEffect(() => {
     loadInventory();
@@ -170,7 +190,7 @@ function App() {
                   </td>
                   <td style={{ textAlign: "right" }}>
                     <button className="btn-icon edit">✎</button>
-                    <button className="btn-icon delete">🗑</button>
+                    <button className="btn-icon delete" onClick={()=> deleteProduct(product.id)}>🗑</button>
                   </td>
                 </tr>
               ))}

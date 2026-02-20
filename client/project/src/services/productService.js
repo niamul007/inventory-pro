@@ -26,3 +26,25 @@ export const addProduct = async (productData) => {
     }
     return json.data.product;
 };
+
+export const delProduct = async (id) => {
+    if (!id) throw new Error("ID is required");
+
+    const response = await fetch(`${API_URL}/delete-product/${id}`, {
+        method: 'DELETE',
+    });
+
+    const json = await response.json();
+
+    if (!response.ok) {
+        throw new Error(json.message || 'Failed to delete product');
+    }
+
+    // SAFE ACCESS: Check if json.data exists first
+    if (json.data && json.data.product) {
+        return json.data.product;
+    }
+
+    // If there's no data, just return true to signal success
+    return true; 
+};
