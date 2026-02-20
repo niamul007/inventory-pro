@@ -4,11 +4,13 @@ import {
   getProducts,
   addProduct,
   delProduct,
+  updateProduct,
 } from "./services/productService.js";
 
 function App() {
   const [products, setProducts] = useState([]); // plural 'products' for the list
   const [loading, setLoading] = useState(true);
+  const [editProduct, setEditProduct] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -24,33 +26,43 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Prepare the data (Conversion)
     const cleanedData = {
       ...formData,
-      price: parseFloat(formData.price), // Convert "19.99" to 19.99
-      stock: parseInt(formData.stock, 10), // Convert "5" to 5
+      price: parseFloat(formData.price),
+      stock: parseInt(formData.stock, 10),
     };
 
-    // 2. Quick Validation
     if (isNaN(cleanedData.price) || isNaN(cleanedData.stock)) {
-      return alert("Please enter valid numbers for Price and Stock!");
+      return alert("Please enter valid numbers!");
     }
 
     try {
-      // 3. Send the CLEANED data, not the raw formData
-      const response = await addProduct(cleanedData);
+      if (editProduct) {
+        // --- UPDATE PATH ---
+        // We pass the ID (editProduct) and the new data
+        await updateProduct(editProduct, cleanedData);
 
-      const newProduct = response.data?.product || response;
-      setProducts([newProduct, ...products]);
+        // MENTOR TIP: Instead of alert(), use a console log or a small notification
+        console.log("Product updated successfully");
+      } else {
+        // --- CREATE PATH ---
+        const response = await addProduct(cleanedData);
+        // We add it to the list immediately for a snappy UI
+        const newProduct = response.data?.product || response;
+        setProducts([newProduct, ...products]);
+      }
 
-      // Reset form
+      // 1. Clear the form and the "Editing" state
       setFormData({ name: "", category: "Electronics", price: "", stock: "" });
-      console.log("Product saved to Neon!");
-      // Inside handleSubmit catch block
+      setEditProduct(null);
+
+      // 2. Refresh the whole list from the server to ensure UI is in sync
+      await loadInventory();
+
+      alert(editProduct ? "Updated!" : "Added!");
     } catch (err) {
-      console.error("Validation Failed:", err);
-      // This will tell us exactly which field Zod hates:
-      console.log(`Error: ${err.message}`);
+      console.error("Operation failed:", err);
+      alert(`Error: ${err.message}`);
     }
   };
   // 1. Function to LOAD data
@@ -65,7 +77,7 @@ function App() {
     }
   };
 
-const deleteProduct = async (id) => {
+  const deleteProduct = async (id) => {
     try {
       // 1. Tell the server to delete it from the Database
       await delProduct(id);
@@ -73,14 +85,27 @@ const deleteProduct = async (id) => {
       // 2. Update the UI: Filter OUT the item with the matching ID
       // We keep every item that DOES NOT match the ID we just deleted
       const updatedList = products.filter((item) => item.id !== id);
-      
+
       setProducts(updatedList);
-      console.log("Product removed")
+      console.log("Product removed");
     } catch (err) {
       console.error("Delete failed:", err);
-      console.log("product didn't delete")
+      console.log("product didn't delete");
     }
   };
+
+  const handleEditClick = (product) => {
+    setEditProduct(product.id); // Save the ID so we know which one to update
+    setFormData({
+      name: product.name,
+      category: product.category,
+      price: product.price,
+      stock: product.stock,
+    });
+    // This scrolls the user back up to the form automatically
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // 2. Run ONLY once when the component mounts
   useEffect(() => {
     loadInventory();
@@ -189,8 +214,18 @@ const deleteProduct = async (id) => {
                     </span>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <button className="btn-icon edit">✎</button>
-                    <button className="btn-icon delete" onClick={()=> deleteProduct(product.id)}>🗑</button>
+                    <button
+                      className="btn-icon edit"
+                      onClick={() => handleEditClick(product)}
+                    >
+                      ✎
+                    </button>
+                    <button
+                      className="btn-icon delete"
+                      onClick={() => deleteProduct(product.id)}
+                    >
+                      🗑
+                    </button>
                   </td>
                 </tr>
               ))}
