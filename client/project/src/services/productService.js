@@ -1,12 +1,18 @@
 const API_URL = 'http://localhost:7001/api';
 
+/**
+ * [Frontend API Layer]:
+ * This file translates Backend JSON responses into usable data for React.
+ */
+
 export const getProducts = async () => {
     const response = await fetch(`${API_URL}/get-product`);
     const json = await response.json();
-    // We reach into the structure you just built in the controller!
+    
+    // [The Bridge]: We match the { data: { products: [...] } } 
+    // structure defined in our productController.mjs
     return json.data.products; 
 };
-
 
 export const addProduct = async (productData) => {
     const response = await fetch(`${API_URL}/add-product`, {
@@ -18,9 +24,10 @@ export const addProduct = async (productData) => {
     const json = await response.json();
 
     if (!response.ok) {
-        // Log the exact validation errors from Zod to the console
+        // [Zod Error Table]: If the backend validation fails, we show
+        // exactly which fields failed in the browser console.
         if (json.errors) {
-            console.table(json.errors); // This will show a nice table of what failed
+            console.table(json.errors); 
         }
         throw new Error(json.message || 'Failed to add product');
     }
@@ -40,17 +47,10 @@ export const delProduct = async (id) => {
         throw new Error(json.message || 'Failed to delete product');
     }
 
-    // SAFE ACCESS: Check if json.data exists first
-    if (json.data && json.data.product) {
-        return json.data.product;
-    }
-
-    // If there's no data, just return true to signal success
-    return true; 
+    // [Safe Access]: We check for data first to avoid "Cannot read property of undefined"
+    return json.data?.product || true; 
 };
 
-
-// Change this line in your productService.js
 export const updateProduct = async (id, productData) => {
     const response = await fetch(`${API_URL}/update-product/${id}`, {
         method: 'PUT',
@@ -63,6 +63,7 @@ export const updateProduct = async (id, productData) => {
     if (!response.ok) {
         throw new Error(json.message || `Error: ${response.status}`);
     }
-    // Accessing data.product based on your controller pattern
+    
+    // [Optional Chaining]: json.data?.product is the safest way to grab data
     return json.data?.product || json;
 };
