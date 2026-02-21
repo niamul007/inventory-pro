@@ -23,45 +23,40 @@ function App() {
     setFormData({ ...formData, [name]: value });
   };
 
+  /**
+   * [The Dashboard Command Center]:
+   * This component manages the bridge between your React UI
+   * and your professional Node.js backend.
+   */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // [Data Cleaning]: Before sending to the backend, we convert
+    // strings from the form into numbers to satisfy our Zod schema.
     const cleanedData = {
       ...formData,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock, 10),
     };
 
-    if (isNaN(cleanedData.price) || isNaN(cleanedData.stock)) {
-      return alert("Please enter valid numbers!");
-    }
-
     try {
       if (editProduct) {
-        // --- UPDATE PATH ---
-        // We pass the ID (editProduct) and the new data
+        // [UPDATE]: Communicates with PUT /update-product/:id
         await updateProduct(editProduct, cleanedData);
-
-        // MENTOR TIP: Instead of alert(), use a console log or a small notification
-        console.log("Product updated successfully");
       } else {
-        // --- CREATE PATH ---
+        // [CREATE]: Communicates with POST /add-product
         const response = await addProduct(cleanedData);
-        // We add it to the list immediately for a snappy UI
         const newProduct = response.data?.product || response;
         setProducts([newProduct, ...products]);
       }
 
-      // 1. Clear the form and the "Editing" state
+      // [Reset]: Return the app to a clean state
       setFormData({ name: "", category: "Electronics", price: "", stock: "" });
       setEditProduct(null);
-
-      // 2. Refresh the whole list from the server to ensure UI is in sync
-      await loadInventory();
-
-      alert(editProduct ? "Updated!" : "Added!");
+      await loadInventory(); // Final sync with the source of truth (Database)
     } catch (err) {
-      console.error("Operation failed:", err);
+      // [Error Feedback]: Uses the 'message' we sent from AppError.mjs
       alert(`Error: ${err.message}`);
     }
   };
