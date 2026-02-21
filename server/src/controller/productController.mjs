@@ -1,6 +1,14 @@
 import * as productService from "../service/productService.mjs";
 import catchAsync from "../utilities/catchAsync.mjs";
+import AppError from "../utilities/appError.mjs"; // Make sure to import this!
 
+/**
+ * [The Controller Layer]:
+ * This is the "Brain." It receives the request, asks the Service 
+ * to do the heavy lifting, and sends the response back to the client.
+ */
+
+// Fetches all products and formats the response for the Frontend
 export const getProduct = catchAsync(async (req, res, next) => {
   const products = await productService.getAllProducts();
   res.status(200).json({
@@ -10,6 +18,7 @@ export const getProduct = catchAsync(async (req, res, next) => {
   });
 });
 
+// Creates a new product using the validated req.body
 export const addProduct = catchAsync(async (req, res, next) => {
   const product = await productService.createProduct(req.body);
   res.status(201).json({
@@ -18,38 +27,33 @@ export const addProduct = catchAsync(async (req, res, next) => {
   });
 });
 
+/**
+ * [Delete Logic]: 
+ * CLEANUP NOTE: You had a try/catch here, but catchAsync already does 
+ * that for you! I've converted the check to use your AppError system.
+ */
 export const delProduct = catchAsync(async (req, res, next) => {
-  try {
     const { id } = req.params;
-    
-    // 1. Call the delete service (The one using DELETE FROM ... WHERE id = $1)
     const deletedProduct = await productService.delProduct(id);
 
-    // 2. Check if the product actually existed
+    // If the database returns nothing, it means the ID was wrong.
+    // We send this to our Global Error Handler via next(new AppError).
     if (!deletedProduct) {
-      return res.status(404).json({
-        status: "fail",
-        message: "No product found with that ID",
-      });
+      return next(new AppError("No product found with that ID", 404));
     }
 
-    // 3. Send back a 200 (OK) or 204 (No Content)
     res.status(200).json({
       status: "success",
       message: "Product deleted successfully",
-      data: null // Or send back deletedProduct if you want to show what was lost
+      data: null 
     });
-  } catch (err) {
-    next(err); // Send errors to your global error handler
-  }
 });
 
-
+// Updates an existing product and returns the fresh data
 export const updateProduct = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const { name, category, price, stock } = req.body;
 
-    // Call the service we just wrote
     const updatedProduct = await productService.updateProduct(id, { name, category, price, stock });
 
     if (!updatedProduct) {
@@ -58,8 +62,6 @@ export const updateProduct = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
         status: 'success',
-        data: {
-            product: updatedProduct
-        }
+        data: { product: updatedProduct }
     });
 });
